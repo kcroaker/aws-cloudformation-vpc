@@ -1,0 +1,52 @@
+{ 
+	"AWSTemplateFormatVersion" : "2010-09-09", 
+	"Description" : "CloudFormation Template to make the VirtualLabs Application RouteTables. There is 1 route table for Public subnets, 1 route table for the 2 application subnets and 2 data subnets. Author: Kris Croaker. Version: 1.0", 
+	"Parameters" : { 
+
+		"BusinessUnit" : {
+		    "Type" : "String",
+		    "Default" : "<%= @business_unit.upcase %>",
+		    "Description" : "Enter the Business Unit that will own this VPC (VirtualLabs)",
+		    "AllowedValues" : ["VIRTUALLABS"],
+	    	"ConstraintDescription": "Must be one of the following VirtualLabs (Upper Case)"
+		},
+		"Environment" : {
+		    "Type" : "String",
+		    "Default" : "<%= @environment.upcase %>",
+		    "Description" : "Enter the Environment that this VPC will hold (PROD, UAT, TEST, DEV)",
+		    "AllowedValues" : ["PROD", "UAT", "TEST","DEV"],
+	    	"ConstraintDescription": "Must be one of the following PROD, UAT, TEST, DEV (Upper Case)"
+		},
+		"StackName" : {
+		    "Type" : "String",
+		    "Default" : "<%= @stack_name %>",
+		    "Description" : "Enter the Name of this Stack"
+		},
+		"VpcId" : {
+		    "Type" : "String",
+		    "Default" : "<%= @vpc_cidr %>",
+		    "Description" : "Enter the CIDR of the VPC e.g 10.0.0.0/21",
+	    	"ConstraintDescription": "Must be a valid IP CIDR range of the form x.x.x.x/x"
+		}
+	},
+
+	"Resources": {
+
+		"RouteTable" : {
+			"Type" : "AWS::EC2::RouteTable",
+			"Properties" : {
+			"VpcId" : { "Ref" : "VpcId" },
+			"Tags" : [ {"Key" : "Environment" , "Value" : {"Ref" : "Environment"}},
+					{"Key" : "Name" , "Value" : {"Fn::Join" : ["-",[{"Ref" : "BusinessUnit"},{"Ref" : "Environment"},{"Ref" : "StackName"},"Private"]]}}, 
+					{"Key" : "NetworkProfile" , "Value" : "Private"} ]
+			}
+		}
+
+		
+	},
+	"Outputs" : { 
+		"RequestedRouteTableId" : {
+			"Value" : { "Ref":  "RouteTable" }
+		}
+	}
+}

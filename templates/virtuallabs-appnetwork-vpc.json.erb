@@ -1,0 +1,184 @@
+{ 
+	"AWSTemplateFormatVersion" : "2010-09-09", 
+	"Description" : "CloudFormation Template to make the VirtualLabs Application VPC. There are 2 Public subnets, 2 application subnets and 2 data subnets. Author: Kris Croaker. Version: 1.0", 
+	"Parameters" : { 
+
+		"BusinessUnit" : {
+		    "Type" : "String",
+		    "Default" : "<%= @business_unit.upcase %>",
+		    "Description" : "Enter the Business Unit that will own this VPC (VIRTUALLABS)",
+		    "AllowedValues" : ["VIRTUALLABS"],
+	    	"ConstraintDescription": "Must be one of the following VIRTUALLABS (Upper Case)"
+		},
+		"Environment" : {
+		    "Type" : "String",
+		    "Default" : "<%= @environment.upcase %>",
+		    "Description" : "Enter the Environment that this VPC will hold (PROD, UAT, TEST, DEV)",
+		    "AllowedValues" : ["PROD", "UAT", "STAGING", "TEST", "DEV"],
+	    	"ConstraintDescription": "Must be one of the following PROD, UAT, STAGING, TEST, DEV (Upper Case)"
+		},
+		"StackName" : {
+		    "Type" : "String",
+		    "Default" : "<%= @stack_name %>",
+		    "Description" : "Enter the Name of this Stack"
+		},
+		"VpcCidr" : {
+		    "Type" : "String",
+		    "Default" : "<%= @vpc_cidr %>",
+		    "Description" : "Enter the CIDR of the VPC e.g 10.0.0.0/21",
+		    "AllowedPattern": "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})",
+	    	"ConstraintDescription": "Must be a valid IP CIDR range of the form x.x.x.x/x"
+		},
+		"SubnetTemplateURL" : {
+		    "Type" : "String",
+			"Default" : "<%= @subnet_nested_stack_location %>",
+		    "Description" : "Enter the CIDR of the VPC e.g 10.0.0.0/21"
+		},
+		"NaclTemplateURL" : {
+		    "Type" : "String",
+			"Default" : "<%= @nacls_nested_stack_location %>",
+		    "Description" : "Enter the CIDR of the VPC e.g 10.0.0.0/21"
+		},
+		"RouteTableTemplateURL" : {
+		    "Type" : "String",
+			"Default" : "<%= @routing_nested_stack_location %>",
+		    "Description" : "Enter the CIDR of the VPC e.g 10.0.0.0/21"
+		},
+		"PresentationSubnetACidr" : {
+		    "Type" : "String",
+		    "Default" : "<%= @presentation_subnet_a_cidr %>",
+		    "Description" : "Enter the CIDR of the VPC e.g 10.0.0.0/21",
+		    "AllowedPattern": "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})",
+	    	"ConstraintDescription": "Must be a valid IP CIDR range of the form x.x.x.x/x."
+		},
+		"PresentationSubnetBCidr" : {
+		    "Type" : "String",
+		    "Default" : "<%= @presentation_subnet_b_cidr %>",
+		    "Description" : "Enter the CIDR of the VPC e.g 10.0.0.0/21",
+		    "AllowedPattern": "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})",
+	    	"ConstraintDescription": "Must be a valid IP CIDR range of the form x.x.x.x/x."
+		},
+		"ApplicationSubnetACidr" : {
+		    "Type" : "String",
+		    "Default" : "<%= @application_subnet_a_cidr %>",
+		    "Description" : "Enter the CIDR of the VPC e.g 10.0.0.0/21",
+		    "AllowedPattern": "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})",
+	    	"ConstraintDescription": "Must be a valid IP CIDR range of the form x.x.x.x/x"
+		},
+		"ApplicationSubnetBCidr" : {
+		    "Type" : "String",
+		    "Default" : "<%= @application_subnet_b_cidr %>",
+		    "Description" : "Enter the CIDR of the VPC e.g 10.0.0.0/21",
+		    "AllowedPattern": "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})",
+	    	"ConstraintDescription": "Must be a valid IP CIDR range of the form x.x.x.x/x"
+		},
+		"DataSubnetACidr" : {
+		    "Type" : "String",
+		    "Default" : "<%= @data_subnet_a_cidr %>",
+		    "Description" : "Enter the CIDR of the VPC e.g 10.0.0.0/21",
+		    "AllowedPattern": "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})",
+	    	"ConstraintDescription": "Must be a valid IP CIDR range of the form x.x.x.x/x"
+		},
+		"DataSubnetBCidr" : {
+		    "Type" : "String",
+		    "Default" : "<%= @data_subnet_b_cidr %>",
+		    "Description" : "Enter the CIDR of the VPC e.g 10.0.0.0/21",
+		    "AllowedPattern": "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})",
+	    	"ConstraintDescription": "Must be a valid IP CIDR range of the form x.x.x.x/x"
+		}
+	},
+
+	"Resources": {
+
+		"VpcId" : { 
+			"Type" : "AWS::EC2::VPC",
+			"Properties" : { 
+				"CidrBlock" : { "Ref" : "VpcCidr"}, 
+				"Tags" : [ 
+					{"Key" : "Environment" , "Value" : {"Ref" : "Environment"}},
+					{"Key" : "Name" , "Value" : {"Fn::Join" : ["-",[{"Ref" : "BusinessUnit"},{"Ref" : "Environment"},{"Ref" : "StackName"}]]}}
+				] 
+			}
+		},
+
+		"RouteTable": {
+		    "Type" : "AWS::CloudFormation::Stack",
+		    "Properties" : {
+		        "Parameters" : {
+		        	"VpcId" : {"Ref": "VpcId"},
+		        	"BusinessUnit" : {"Ref": "BusinessUnit"},
+		        	"Environment" : {"Ref": "Environment"},
+		        	"StackName" : {"Ref": "StackName"}
+		        },
+		        "TemplateURL" : {"Ref": "RouteTableTemplateURL"},
+		        "TimeoutInMinutes" : "600"
+		    }
+		},
+
+		"NetworkAcls": {
+		    "Type" : "AWS::CloudFormation::Stack",
+		    "Properties" : {
+		        "Parameters" : {
+		        	"VpcId" : {"Ref": "VpcId"},
+		        	"BusinessUnit" : {"Ref": "BusinessUnit"},
+		        	"Environment" : {"Ref": "Environment"},
+		        	"StackName" : {"Ref": "StackName"},
+		        	"VpcCidr" : {"Ref": "VpcCidr"}
+		        },
+		        "TemplateURL" : {"Ref": "NaclTemplateURL"},
+		        "TimeoutInMinutes" : "600"
+		    }
+		},
+
+		"Subnets": {
+		    "Type" : "AWS::CloudFormation::Stack",
+		    "Properties" : {
+		        "Parameters" : {
+		        	"VpcId" : {"Ref": "VpcId"},
+		        	"BusinessUnit" : {"Ref": "BusinessUnit"},
+		        	"Environment" : {"Ref": "Environment"},
+		        	"StackName" : {"Ref": "StackName"},
+		        	"RouteTable" : { "Fn::GetAtt" : [ "RouteTable", "Outputs.RequestedRouteTableId" ] },
+		        	"NetworkAcls" : { "Fn::GetAtt" : [ "NetworkAcls", "Outputs.RequestedNaclId" ] },
+		        	"PresentationSubnetACidr" : {"Ref": "PresentationSubnetACidr"},
+		        	"PresentationSubnetBCidr" : {"Ref": "PresentationSubnetBCidr"},
+		        	"ApplicationSubnetACidr" : {"Ref": "ApplicationSubnetACidr"},
+		        	"ApplicationSubnetBCidr" : {"Ref": "ApplicationSubnetBCidr"},
+		        	"DataSubnetACidr" : {"Ref": "DataSubnetACidr"},
+		        	"DataSubnetBCidr" : {"Ref": "DataSubnetBCidr"}
+		        },
+		        "TemplateURL" : {"Ref": "SubnetTemplateURL"},
+		        "TimeoutInMinutes" : "600"
+		    }
+		}
+		
+	},
+	"Outputs" : { 
+		"VpcId" : {
+            "Value" : { "Ref" : "VpcId" }
+        },
+		"PresSubnetA" : {
+	    	"Value" : { "Fn::GetAtt" : [ "Subnets", "Outputs.PresentationSubnetA" ] }
+	    },
+		"PresSubnetB" : {
+	    	"Value" : { "Fn::GetAtt" : [ "Subnets", "Outputs.PresentationSubnetB" ] }
+	    },
+		"AppSubnetA" : {
+	    	"Value" : { "Fn::GetAtt" : [ "Subnets", "Outputs.ApplicationSubnetA" ] }
+	    },
+		"AppSubnetB" : {
+	    	"Value" : { "Fn::GetAtt" : [ "Subnets", "Outputs.ApplicationSubnetB" ] }
+	    },
+		"DataSubnetA" : {
+	    	"Value" : { "Fn::GetAtt" : [ "Subnets", "Outputs.DataSubnetA" ] }
+	    },
+		"DataSubnetB" : {
+	    	"Value" : { "Fn::GetAtt" : [ "Subnets", "Outputs.DataSubnetB" ] }
+	    } 
+	}
+}
+
+
+
+
+

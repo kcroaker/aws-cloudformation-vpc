@@ -1,0 +1,25 @@
+"UNSWDMZRouteTable" : {
+			"Type" : "AWS::EC2::RouteTable",
+			"Properties" : {
+			"VpcId" : { "Ref" : "UNSWVPC" },
+			"Tags" : [ {"Key" : "Environment" , "Value" : {"Ref" : "Environment"}},
+					{"Key" : "Name" , "Value" : {"Fn::Join" : ["-",[{"Ref" : "BusinessUnit"},{"Ref" : "Environment"},{"Ref" : "StackName"},"Public"]]}}, 
+					{"Key" : "NetworkProfile" , "Value" : "DMZ"} ]
+			}
+		},
+
+		"UNSWDMZaRouteTableAssociation" : {
+			"Type" : "AWS::EC2::SubnetRouteTableAssociation",
+			"Properties" : {
+				"SubnetId" : { "Ref" : "UNSWDMZa" },
+				"RouteTableId" : { "Ref" : "UNSWDMZRouteTable" }
+			}
+		},
+
+		"UNSWDMZbRouteTableAssociation" : {
+			"Type" : "AWS::EC2::SubnetRouteTableAssociation",
+			"Properties" : {
+				"SubnetId" : { "Ref" : "UNSWDMZb" },
+				"RouteTableId" : { "Ref" : "UNSWDMZRouteTable" }
+			}
+		}

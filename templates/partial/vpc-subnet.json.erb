@@ -1,0 +1,22 @@
+	
+
+
+"<%= @resourcename %>" : {
+	"Type":"AWS::EC2::Subnet",
+	"Properties":{ 
+		"AvailabilityZone": { "Fn::Select" : [ "<%= @availabilityzone %>", { "Fn::GetAZs" : { "Ref" : "AWS::Region" } } ] },
+		"VpcId": {"Ref" : "<%= @vpcid %>"},
+		"CidrBlock": {"Ref" : "<%= @cidrblock %>"},
+		"Tags" : [ 
+			{"Key" : "Environment" , "Value" : {"Ref" : "Environment"}},
+			{"Key" : "Name" , "Value" : {"Fn::Join" : ["-",[{"Ref" : "BusinessUnit"},{"Ref" : "Environment"},{"Ref" : "StackName"},"<%= @zonelabel %>"]]}},
+			{"Key" : "NetworkTier" , "Value" : "<%= @apptiertag %>"}, 
+			<% if @publictag %>
+			{"Key" : "NetworkProfile" , "Value" : "Public"} 
+			<% else %>
+			{"Key" : "NetworkProfile" , "Value" : "Private"} 
+			<% end %>
+		] 
+	}
+}
+

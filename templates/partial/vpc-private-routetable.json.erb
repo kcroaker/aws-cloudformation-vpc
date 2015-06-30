@@ -1,0 +1,25 @@
+"UNSWPRIVRouteTable" : {
+			"Type" : "AWS::EC2::RouteTable",
+			"Properties" : {
+			"VpcId" : { "Ref" : "UNSWVPC" },
+			"Tags" : [ {"Key" : "Environment" , "Value" : {"Ref" : "Environment"}},
+					{"Key" : "Name" , "Value" : {"Fn::Join" : ["-",[{"Ref" : "BusinessUnit"},{"Ref" : "Environment"},{"Ref" : "StackName"},"Private"]]}}, 
+					{"Key" : "NetworkProfile" , "Value" : "Private"} ]
+			}
+		},
+
+		"UNSWPRIVaRouteTableAssociation" : {
+			"Type" : "AWS::EC2::SubnetRouteTableAssociation",
+			"Properties" : {
+				"SubnetId" : { "Ref" : "UNSWPRIVa" },
+				"RouteTableId" : { "Ref" : "UNSWPRIVRouteTable" }
+			}
+		},
+
+		"UNSWPRIVbRouteTableAssociation" : {
+			"Type" : "AWS::EC2::SubnetRouteTableAssociation",
+			"Properties" : {
+				"SubnetId" : { "Ref" : "UNSWPRIVb" },
+				"RouteTableId" : { "Ref" : "UNSWPRIVRouteTable" }
+			}
+		}

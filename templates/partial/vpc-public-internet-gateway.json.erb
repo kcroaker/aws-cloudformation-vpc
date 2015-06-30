@@ -1,0 +1,14 @@
+"UNSWIGW" : {
+        	"Type" : "AWS::EC2::InternetGateway",
+        	"Properties" : {
+            	"Tags" : [ {"Key" : "Environment" , "Value" : {"Ref" : "Environment"}},
+					{"Key" : "Name" , "Value" : {"Fn::Join" : ["-",[{"Ref" : "BusinessUnit"},{"Ref" : "Environment"},{"Ref" : "StackName"}]]}} ]
+        	}
+      	},
+      	"UNSWAttachIGW" : {
+		   "Type" : "AWS::EC2::VPCGatewayAttachment",
+		   "Properties" : {
+		    	"VpcId" : { "Ref" : "UNSWVPC" },
+		    	"InternetGatewayId" : { "Ref" : "UNSWIGW" }
+		   }
+		}

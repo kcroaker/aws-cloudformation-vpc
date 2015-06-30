@@ -1,0 +1,297 @@
+{ 
+	"AWSTemplateFormatVersion" : "2010-09-09", 
+	"Description" : "CloudFormation Template to make the VirtualLabs Application Subnets. There are 2 Public subnets, 2 application subnets and 2 data subnets. Author: Kris Croaker. Version: 1.0", 
+	"Parameters" : { 
+
+		"BusinessUnit" : {
+		    "Type" : "String",
+		    "Default" : "<%= @business_unit.upcase %>",
+		    "Description" : "Enter the Business Unit that will own this VPC (VirtualLabs)",
+		    "AllowedValues" : ["VIRTUALLABS"],
+	    	"ConstraintDescription": "Must be one of the following "VirtualLabs" (Upper Case)"
+		},
+		"Environment" : {
+		    "Type" : "String",
+		    "Default" : "<%= @environment.upcase %>",
+		    "Description" : "Enter the Environment that this VPC will hold (PROD, UAT, TEST, DEV)",
+		    "AllowedValues" : ["PROD", "UAT", "TEST","DEV"],
+	    	"ConstraintDescription": "Must be one of the following PROD, UAT, TEST, DEV (Upper Case)"
+		},
+		"StackName" : {
+		    "Type" : "String",
+		    "Default" : "<%= @stack_name %>",
+		    "Description" : "Enter the Name of this Stack"
+		},
+		"VpcId" : {
+		    "Type" : "String",
+		    "Default" : "<%= @vpc_id %>",
+		    "Description" : "Enter the CIDR of the VPC e.g 10.0.0.0/21",
+	    	"ConstraintDescription": "Must be a valid IP CIDR range of the form x.x.x.x/x"
+		},
+		"PresentationSubnetACidr" : {
+		    "Type" : "String",
+		    "Default" : "<%= @presentation_subnet_a_cidr %>",
+		    "Description" : "Enter the CIDR of the VPC e.g 10.0.0.0/21",
+		    "AllowedPattern": "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})",
+	    	"ConstraintDescription": "Must be a valid IP CIDR range of the form x.x.x.x/x"
+		},
+		"PresentationSubnetBCidr" : {
+		    "Type" : "String",
+		    "Default" : "<%= @presentation_subnet_b_cidr %>",
+		    "Description" : "Enter the CIDR of the VPC e.g 10.0.0.0/21",
+		    "AllowedPattern": "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})",
+	    	"ConstraintDescription": "Must be a valid IP CIDR range of the form x.x.x.x/x"
+		},
+		"ApplicationSubnetACidr" : {
+		    "Type" : "String",
+		    "Default" : "<%= @application_subnet_a_cidr %>",
+		    "Description" : "Enter the CIDR of the VPC e.g 10.0.0.0/21",
+		    "AllowedPattern": "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})",
+	    	"ConstraintDescription": "Must be a valid IP CIDR range of the form x.x.x.x/x"
+		},
+		"ApplicationSubnetBCidr" : {
+		    "Type" : "String",
+		    "Default" : "<%= @application_subnet_b_cidr %>",
+		    "Description" : "Enter the CIDR of the VPC e.g 10.0.0.0/21",
+		    "AllowedPattern": "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})",
+	    	"ConstraintDescription": "Must be a valid IP CIDR range of the form x.x.x.x/x"
+		},
+		"DataSubnetACidr" : {
+		    "Type" : "String",
+		    "Default" : "<%= @data_subnet_a_cidr %>",
+		    "Description" : "Enter the CIDR of the VPC e.g 10.0.0.0/21",
+		    "AllowedPattern": "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})",
+	    	"ConstraintDescription": "Must be a valid IP CIDR range of the form x.x.x.x/x"
+		},
+		"DataSubnetBCidr" : {
+		    "Type" : "String",
+		    "Default" : "<%= @data_subnet_b_cidr %>",
+		    "Description" : "Enter the CIDR of the VPC e.g 10.0.0.0/21",
+		    "AllowedPattern": "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})",
+	    	"ConstraintDescription": "Must be a valid IP CIDR range of the form x.x.x.x/x"
+		},
+		"NetworkAcls" : {
+		    "Type" : "String",
+		    "Default" : "<%= @network_acls %>",
+		    "Description" : "Enter the CIDR of the VPC e.g 10.0.0.0/21",
+	    	"ConstraintDescription": "Must be a valid IP CIDR range of the form x.x.x.x/x"
+		},
+		"RouteTable" : {
+		    "Type" : "String",
+		    "Default" : "<%= @route_table %>",
+		    "Description" : "Enter the CIDR of the VPC e.g 10.0.0.0/21",
+	    	"ConstraintDescription": "Must be a valid IP CIDR range of the form x.x.x.x/x"
+		}
+	
+	},
+
+	"Resources": {
+
+		"PresentationSubnetA" : {
+			"Type":"AWS::EC2::Subnet",
+			"Properties":{ 
+				"AvailabilityZone": { "Fn::Select" : [ "0", { "Fn::GetAZs" : { "Ref" : "AWS::Region" } } ] },
+				"VpcId": {"Ref" : "VpcId"},
+				"CidrBlock": {"Ref" : "PresentationSubnetACidr"},
+				"Tags" : [ 
+					{"Key" : "Environment" , "Value" : {"Ref" : "Environment"}},
+					{"Key" : "Name" , "Value" : {"Fn::Join" : ["-",[{"Ref" : "BusinessUnit"},{"Ref" : "Environment"},{"Ref" : "StackName"},"A"]]}},
+					{"Key" : "NetworkTier" , "Value" : "Presentation"}, 
+					{"Key" : "NetworkProfile" , "Value" : "Private"} 
+				] 
+			}
+		},
+
+		"RouteTableAssociationPA" : {
+			"Type" : "AWS::EC2::SubnetRouteTableAssociation",
+			"Properties" : {
+				"SubnetId" : { "Ref" : "PresentationSubnetA" },
+				"RouteTableId" : { "Ref" : "RouteTable" }
+			}
+		},
+
+		"NaclAssocPA" : {
+			"Type" : "AWS::EC2::SubnetNetworkAclAssociation",
+			"Properties" : {
+				"SubnetId" : { "Ref" : "PresentationSubnetA" },
+				"NetworkAclId" : { "Ref" : "NetworkAcls" }
+			}
+		},
+
+		"PresentationSubnetB" : {
+			"Type":"AWS::EC2::Subnet",
+			"Properties":{ 
+				"AvailabilityZone": { "Fn::Select" : [ "1", { "Fn::GetAZs" : { "Ref" : "AWS::Region" } } ] },
+				"VpcId": {"Ref" : "VpcId"},
+				"CidrBlock": {"Ref" : "PresentationSubnetBCidr"},
+				"Tags" : [ 
+					{"Key" : "Environment" , "Value" : {"Ref" : "Environment"}},
+					{"Key" : "Name" , "Value" : {"Fn::Join" : ["-",[{"Ref" : "BusinessUnit"},{"Ref" : "Environment"},{"Ref" : "StackName"},"B"]]}},
+					{"Key" : "NetworkTier" , "Value" : "Presentation"}, 
+					{"Key" : "NetworkProfile" , "Value" : "Private"} 
+				] 
+			}
+		},
+
+		"RouteTableAssociationPB" : {
+			"Type" : "AWS::EC2::SubnetRouteTableAssociation",
+			"Properties" : {
+				"SubnetId" : { "Ref" : "PresentationSubnetB" },
+				"RouteTableId" : { "Ref" : "RouteTable" }
+			}
+		},
+
+		"NaclAssocPB" : {
+			"Type" : "AWS::EC2::SubnetNetworkAclAssociation",
+			"Properties" : {
+				"SubnetId" : { "Ref" : "PresentationSubnetB" },
+				"NetworkAclId" : { "Ref" : "NetworkAcls" }
+			}
+		},
+		"ApplicationSubnetA" : {
+			"Type":"AWS::EC2::Subnet",
+			"Properties":{ 
+				"AvailabilityZone": { "Fn::Select" : [ "0", { "Fn::GetAZs" : { "Ref" : "AWS::Region" } } ] },
+				"VpcId": {"Ref" : "VpcId"},
+				"CidrBlock": {"Ref" : "ApplicationSubnetACidr"},
+				"Tags" : [ 
+					{"Key" : "Environment" , "Value" : {"Ref" : "Environment"}},
+					{"Key" : "Name" , "Value" : {"Fn::Join" : ["-",[{"Ref" : "BusinessUnit"},{"Ref" : "Environment"},{"Ref" : "StackName"},"A"]]}},
+					{"Key" : "NetworkTier" , "Value" : "Application"}, 
+					{"Key" : "NetworkProfile" , "Value" : "Private"} 
+				] 
+			}
+		},
+
+		"RouteTableAssociationAA" : {
+			"Type" : "AWS::EC2::SubnetRouteTableAssociation",
+			"Properties" : {
+				"SubnetId" : { "Ref" : "ApplicationSubnetA" },
+				"RouteTableId" : { "Ref" : "RouteTable" }
+			}
+		},
+
+		"NaclAssocAA" : {
+			"Type" : "AWS::EC2::SubnetNetworkAclAssociation",
+			"Properties" : {
+				"SubnetId" : { "Ref" : "ApplicationSubnetA" },
+				"NetworkAclId" : { "Ref" : "NetworkAcls" }
+			}
+		},
+
+		"ApplicationSubnetB" : {
+			"Type":"AWS::EC2::Subnet",
+			"Properties":{ 
+				"AvailabilityZone": { "Fn::Select" : [ "1", { "Fn::GetAZs" : { "Ref" : "AWS::Region" } } ] },
+				"VpcId": {"Ref" : "VpcId"},
+				"CidrBlock": {"Ref" : "ApplicationSubnetBCidr"},
+				"Tags" : [ 
+					{"Key" : "Environment" , "Value" : {"Ref" : "Environment"}},
+					{"Key" : "Name" , "Value" : {"Fn::Join" : ["-",[{"Ref" : "BusinessUnit"},{"Ref" : "Environment"},{"Ref" : "StackName"},"B"]]}},
+					{"Key" : "NetworkTier" , "Value" : "Application"}, 
+					{"Key" : "NetworkProfile" , "Value" : "Private"} 
+				] 
+			}
+		},
+
+		"RouteTableAssociationAB" : {
+			"Type" : "AWS::EC2::SubnetRouteTableAssociation",
+			"Properties" : {
+				"SubnetId" : { "Ref" : "ApplicationSubnetB" },
+				"RouteTableId" : { "Ref" : "RouteTable" }
+			}
+		},
+
+		"NaclAssocAB" : {
+			"Type" : "AWS::EC2::SubnetNetworkAclAssociation",
+			"Properties" : {
+				"SubnetId" : { "Ref" : "ApplicationSubnetB" },
+				"NetworkAclId" : { "Ref" : "NetworkAcls" }
+			}
+		},
+
+		"DataSubnetA" : {
+			"Type":"AWS::EC2::Subnet",
+			"Properties":{ 
+				"AvailabilityZone": { "Fn::Select" : [ "0", { "Fn::GetAZs" : { "Ref" : "AWS::Region" } } ] },
+				"VpcId": {"Ref" : "VpcId"},
+				"CidrBlock": {"Ref" : "DataSubnetACidr"},
+				"Tags" : [ 
+					{"Key" : "Environment" , "Value" : {"Ref" : "Environment"}},
+					{"Key" : "Name" , "Value" : {"Fn::Join" : ["-",[{"Ref" : "BusinessUnit"},{"Ref" : "Environment"},{"Ref" : "StackName"},"A"]]}},
+					{"Key" : "NetworkTier" , "Value" : "Data"}, 
+					{"Key" : "NetworkProfile" , "Value" : "Private"} 
+				] 
+			}
+		},
+
+		"RouteTableAssociationDA" : {
+			"Type" : "AWS::EC2::SubnetRouteTableAssociation",
+			"Properties" : {
+				"SubnetId" : { "Ref" : "DataSubnetA" },
+				"RouteTableId" : { "Ref" : "RouteTable" }
+			}
+		},
+
+		"NaclAssocDA" : {
+			"Type" : "AWS::EC2::SubnetNetworkAclAssociation",
+			"Properties" : {
+				"SubnetId" : { "Ref" : "DataSubnetA" },
+				"NetworkAclId" : { "Ref" : "NetworkAcls" }
+			}
+		},
+
+
+		"DataSubnetB" : {
+			"Type":"AWS::EC2::Subnet",
+			"Properties":{ 
+				"AvailabilityZone": { "Fn::Select" : [ "1", { "Fn::GetAZs" : { "Ref" : "AWS::Region" } } ] },
+				"VpcId": {"Ref" : "VpcId"},
+				"CidrBlock": {"Ref" : "DataSubnetBCidr"},
+				"Tags" : [ 
+					{"Key" : "Environment" , "Value" : {"Ref" : "Environment"}},
+					{"Key" : "Name" , "Value" : {"Fn::Join" : ["-",[{"Ref" : "BusinessUnit"},{"Ref" : "Environment"},{"Ref" : "StackName"},"B"]]}},
+					{"Key" : "NetworkTier" , "Value" : "Data"}, 
+					{"Key" : "NetworkProfile" , "Value" : "Private"} 
+				] 
+			}
+		},
+
+		"RouteTableAssociationDB" : {
+			"Type" : "AWS::EC2::SubnetRouteTableAssociation",
+			"Properties" : {
+				"SubnetId" : { "Ref" : "DataSubnetB" },
+				"RouteTableId" : { "Ref" : "RouteTable" }
+			}
+		},
+
+		"NaclAssocDB" : {
+			"Type" : "AWS::EC2::SubnetNetworkAclAssociation",
+			"Properties" : {
+				"SubnetId" : { "Ref" : "DataSubnetB" },
+				"NetworkAclId" : { "Ref" : "NetworkAcls" }
+			}
+		}
+		
+	},
+	"Outputs" : { 
+		"PresentationSubnetA" : {
+			"Value" : { "Ref":  "PresentationSubnetA" }
+		},
+		"PresentationSubnetB" : {
+			"Value" : { "Ref":  "PresentationSubnetB" }
+		},
+		"ApplicationSubnetA" : {
+			"Value" : { "Ref":  "ApplicationSubnetA" }
+		},
+		"ApplicationSubnetB" : {
+			"Value" : { "Ref":  "ApplicationSubnetB" }
+		},
+		"DataSubnetA" : {
+			"Value" : { "Ref":  "DataSubnetA" }
+		},
+		"DataSubnetB" : {
+			"Value" : { "Ref":  "DataSubnetB" }
+		}
+	}
+}

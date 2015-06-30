@@ -1,0 +1,43 @@
+
+		<%= partial("vpc-subnet.json.erb", 
+			:resourcename => "UNSWDMZa", 
+			:vpcid => "UNSWVPC", 
+			:cidrblock => "DMZaCIDR", 
+			:environment => "Environment", 
+			:businessunit => @business_unit,
+			:environment => @environment,
+			:stackname => @stack_name,
+			:zonelabel => "Public-A", 
+			:apptiertag => "DMZ", 
+			:publictag => true, 
+			:availabilityzone => "0") %>
+		,
+		<%= partial("vpc-subnet.json.erb", 
+			:resourcename => "UNSWDMZb", 
+			:vpcid => "UNSWVPC", 
+			:cidrblock => "DMZbCIDR", 
+			:environment => "Environment", 
+			:businessunit => @business_unit,
+			:environment => @environment,
+			:stackname => @stack_name,
+			:zonelabel => "Public-B", 
+			:apptiertag => "DMZ", 
+			:publictag => true, 
+			:availabilityzone => "1") %>
+		,
+
+		"UNSWDMZaNaclAssoc" : {
+			"Type" : "AWS::EC2::SubnetNetworkAclAssociation",
+			"Properties" : {
+				"SubnetId" : { "Ref" : "UNSWDMZa" },
+				"NetworkAclId" : { "Ref" : "UNSWDMZNetworkAcl" }
+			}
+		},
+
+		"UNSWDMZbNaclAssoc" : {
+			"Type" : "AWS::EC2::SubnetNetworkAclAssociation",
+			"Properties" : {
+				"SubnetId" : { "Ref" : "UNSWDMZb" },
+				"NetworkAclId" : { "Ref" : "UNSWDMZNetworkAcl" }
+			}
+		}
